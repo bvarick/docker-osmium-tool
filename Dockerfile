@@ -1,5 +1,7 @@
 FROM openjdk:latest
 
+RUN microdnf install findutils
+
 LABEL org.opencontainers.image.authors="ben@wisconsinbikefed.org"
 
 ARG OSMOSIS_URL="https://github.com/openstreetmap/osmosis/releases/download/0.49.2/osmosis-0.49.2.tar"
