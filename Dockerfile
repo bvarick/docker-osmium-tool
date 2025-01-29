@@ -1,17 +1,34 @@
-FROM openjdk:latest
+FROM debian:bookworm
 
-RUN microdnf install findutils
+# Adapted from https://github.com/StationA/osmium-tool-docker
 
 LABEL org.opencontainers.image.authors="ben@wisconsinbikefed.org"
 
-ARG OSMOSIS_URL="https://github.com/openstreetmap/osmosis/releases/download/0.49.2/osmosis-0.49.2.tar"
-ENV OSMOSIS_URL=$OSMOSIS_URL
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    git \
+    cmake \
+    nlohmann-json3-dev \
+    libboost-program-options-dev \
+    libbz2-dev \
+    zlib1g-dev \
+    liblz4-dev \
+    libexpat1-dev
+
+RUN mkdir /opt/osmium-tool \
+  && cd /opt/osmium-tool \
+  && git clone https://github.com/mapbox/protozero \
+  && git clone https://github.com/osmcode/libosmium \
+  && git clone https://github.com/osmcode/osmium-tool \
+  && cd osmium-tool \
+  && mkdir build \
+  && cd build \
+  && cmake .. \
+  && make
 
 RUN set -x \
-  && useradd -ms /bin/bash osmosis \
-  && mkdir -p /opt/osmosis \
-  && curl -L $OSMOSIS_URL | tar x -C /opt/osmosis \
-  && ln -s /opt/osmosis/osmosis-0.49.2/bin/osmosis /usr/local/bin/osmosis
+  && useradd -ms /bin/bash osmium-tool \
+  && ln -s /opt/osmium-tool/osmium-tool/build/osmium /usr/local/bin/osmium
 
-USER osmosis
-CMD ["osmosis"]
+USER osmium-tool
+CMD ["osmium"]
